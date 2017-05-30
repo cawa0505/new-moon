@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import Mopidy from 'mopidy'
 import axios from 'axios'
+import { FaSpotify, FaSoundcloud, FaYoutubePlay } from 'react-icons/lib/fa'
 
 const mopidyConfig = {
   autoConnect: true,
@@ -31,24 +32,47 @@ const SearchResult = (props) => (
   <div onClick={props.addTrack} className="result">
     <h3>{props.track.name}</h3>
     <p>{props.track.artists[0].name}</p>
+    <Provider uri={props.track.uri} />
   </div>
 )
 
 const TracksList = (props) => (
   <div>
-   {props.trackList.map((track, i) => <Track key={i} index={i} track={track.track} />)}
+   {props.trackList.map((track, i) => <Track key={i} index={i} track={track} />)}
   </div>
 )
 
 const Track = (props) => (
   <div className={props.index === 0 ? "track nowplaying" : "track"}>
-    <img className="art" src={props.track.album.art}/>
+    <div className="art">
+      {props.track.album.images[0] ? (
+        <img src={props.track.album.images[0]} alt="Album artwork"/>
+      ) : (
+        null
+      )}
+    </div>
     <div>
       <h3>{props.track.name}</h3>
       <p>{props.track.artists[0].name}</p>
+      <Provider uri={props.track.uri} />
     </div>
   </div>
 )
+
+const Provider = (props) => {
+  if (props.uri.startsWith('spotify:')) {
+    return <FaSpotify />
+  }
+  else if (props.uri.startsWith('soundcloud:')) {
+    return <FaSoundcloud />
+  }
+  else if (props.uri.startsWith('youtube:')) {
+    return <FaYoutubePlay />
+  }
+  else {
+    return null
+  }
+}
 
 const Playback = (props) => (
   <div>
@@ -65,8 +89,6 @@ class App extends Component {
       trackList: [],
       results: {
         tracks: [],
-        artists: [],
-        albums: []
       }
     }
     this.getTracks = this.getTracks.bind(this)
@@ -93,29 +115,32 @@ class App extends Component {
   search(event) {
     if (event.target.value !== '') {
       this.setState({ searching: true })
-      mopidy.library.search({'any': [event.target.value]}, ['spotify:']).then((data) => {
+      mopidy.library.search({'any': [event.target.value]}).then((data) => {
         let results = {
-            'tracks': [],
-            'artists': [],
-            'albums': []
+          'tracks': [],
         }
-        for (var i = 0; i < data.length; i++) {
-          Object.keys(results).forEach((key, index) => {
-            if (data[i][key] && data[i][key].length) {
-              results[key] = results[key].concat(data[i][key])
-            }
-          })
-        }
+        data.forEach((key, index) => {
+          if (key.tracks) {
+            Array.prototype.push.apply(results.tracks, key.tracks)
+          }
+        })
         this.setState({ results })
       })
+
     } else {
-      this.setState({ results: {}, searching: false })
+      this.setState({ results: {
+        'tracks': [],
+      }, searching: false })
     }
+
   }
 
   add(track) {
     mopidy.tracklist.add([track]).then((data) => {
       this.setState({searching: false})
+    })
+    .catch((error) => {
+      console.error(error)
     })
   }
 
@@ -125,9 +150,9 @@ class App extends Component {
         mopidy.playback.getCurrentTlTrack().then((currentTrack) => {
           mopidy.tracklist.index(currentTrack).then((trackIndex) => {
             mopidy.tracklist.getLength().then((trackListLength) => {
-              mopidy.tracklist.slice(trackIndex, trackListLength).then((trackList) => {
-                let tracks = trackList.map(this.getArt)
-                let results = Promise.all(tracks)
+              mopidy.tracklist.slice(trackIndex, trackListLength).then((tracks) => {
+                tracks = tracks.map(this.getArt) //get artwork
+                Promise.all(tracks)
                   .then(tracks => {
                     this.setState({ trackList: tracks })
                   })
@@ -140,18 +165,20 @@ class App extends Component {
   }
 
   getArt(track) {
-    if (track.track.uri.startsWith('spotify:track:')) {
-      return new Promise((resolve, reject) => {
-        axios.get('//api.spotify.com/v1/tracks/' + track.track.uri.slice('spotify:track:'.length))
-          .then((response) => {
-            track.track.album.art = response.data.album.images[0].url
-            resolve(track)
-          })
-          .catch((error) => {
-            console.error(error)
-          })
-      })
-    }
+    return new Promise((resolve, reject) => {
+      // if (track.track.uri.startsWith('spotify:track:')) {
+      //   axios('//api.spotify.com/v1/tracks/' + track.track.uri.slice('spotify:track:'.length))
+      //     .then((response) => {
+      //       track.track.album.images[0] = response.data.album.images[0].url
+      //       resolve(track)
+      //     })
+      //     .catch((error) => {
+      //       resolve(track)
+      //     })
+      // } else {
+        resolve(track.track)
+      // }
+    })
   }
 
   play() {
@@ -164,6 +191,7 @@ class App extends Component {
   // <Playback play={this.play} stop={this.stop}/>
 
   render() {
+    console.log(this.state.trackList)
     return (
       <div className="container">
         <Search search={this.search} searching={this.state.searching} results={this.state.results} addTrack={this.add}/>

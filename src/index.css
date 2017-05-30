@@ -80,7 +80,17 @@ p, h3 {
   font-size: 18px;
 }
 
+.track.nowplaying .art {
+  width: 120px;
+}
+
 .track .art {
   margin-right: 15px;
+  height: 100%;
+  width: 50px;
+  background: linear-gradient(hsl(260, 5%, 15%), hsl(260, 5%, 5%));
+}
+
+.track .art img {
   height: 100%;
 }
