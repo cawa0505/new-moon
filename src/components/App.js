@@ -3,6 +3,8 @@ import Mopidy from 'mopidy'
 import axios from 'axios'
 import { FaSpotify, FaSoundcloud, FaYoutubePlay } from 'react-icons/lib/fa'
 
+let throttle
+
 const mopidyConfig = {
   autoConnect: true,
   backoffDelayMin: 4000,
@@ -13,20 +15,26 @@ const mopidyConfig = {
 
 const mopidy = new Mopidy(mopidyConfig)
 
-const Search = (props) => (
-  <div className={props.searching ? "search active" : "search"}>
-    <div className="container">
-      <input placeholder="Search" onChange={props.search} />
-      {!props.searching ? (
-        null
-      ) : (
-        <div className="results">
-          {props.results.tracks.map((track, index) => <SearchResult key={index} track={track} addTrack={() => props.addTrack(track)}/> )}
-        </div>
-      )}
+const Search = (props) => {
+  const clear = (track) => {
+    props.addTrack(track)
+    document.getElementById('search').value = ''
+  }
+  return (
+    <div className={props.searching ? "search active" : "search"}>
+      <div className="container">
+        <input placeholder="Search" onChange={props.search} id="search"/>
+        {!props.searching ? (
+          null
+        ) : (
+          <div className="results">
+            {props.results.tracks.map((track, index) => <SearchResult key={index} track={track} addTrack={() => clear(track)}/> )}
+          </div>
+        )}
+      </div>
     </div>
-  </div>
-)
+  )
+}
 
 const SearchResult = (props) => (
   <div onClick={props.addTrack} className="result">
@@ -45,11 +53,7 @@ const TracksList = (props) => (
 const Track = (props) => (
   <div className={props.index === 0 ? "track nowplaying" : "track"}>
     <div className="art">
-      {props.track.album.images[0] ? (
-        <img src={props.track.album.images[0]} alt="Album artwork"/>
-      ) : (
-        null
-      )}
+      {props.track.album.images[0] ? <img src={props.track.album.images[0]}/> : null}
     </div>
     <div>
       <h3>{props.track.name}</h3>
@@ -82,7 +86,6 @@ const Playback = (props) => (
 )
 
 class App extends Component {
-
   constructor(props) {
     super(props)
     this.state = {
@@ -103,36 +106,39 @@ class App extends Component {
     })
 
     mopidy.on('event:tracklistChanged', () => {
+      // Check play status and change page title to using document.title = '▶' + track.name
       this.getTracks()
     })
 
     mopidy.on('event:trackPlaybackStarted', () => {
       this.getTracks()
     })
-
   }
 
   search(event) {
-    if (event.target.value !== '') {
-      this.setState({ searching: true })
-      mopidy.library.search({'any': [event.target.value]}).then((data) => {
-        let results = {
-          'tracks': [],
-        }
-        data.forEach((key, index) => {
-          if (key.tracks) {
-            Array.prototype.push.apply(results.tracks, key.tracks)
+    const term = event.target.value
+    if (term !== '') {
+      clearTimeout(throttle)
+      throttle = setTimeout(() => {
+        this.setState({ searching: true })
+        mopidy.library.search({'any': [term]}).then((data) => {
+          let results = {
+            'tracks': [],
           }
+          data.forEach((key, index) => {
+            if (key.tracks) {
+              Array.prototype.push.apply(results.tracks, key.tracks)
+            }
+          })
+          this.setState({ results })
         })
-        this.setState({ results })
-      })
+      }, 400)
 
     } else {
       this.setState({ results: {
         'tracks': [],
       }, searching: false })
     }
-
   }
 
   add(track) {
@@ -166,18 +172,12 @@ class App extends Component {
 
   getArt(track) {
     return new Promise((resolve, reject) => {
-      // if (track.track.uri.startsWith('spotify:track:')) {
-      //   axios('//api.spotify.com/v1/tracks/' + track.track.uri.slice('spotify:track:'.length))
-      //     .then((response) => {
-      //       track.track.album.images[0] = response.data.album.images[0].url
-      //       resolve(track)
-      //     })
-      //     .catch((error) => {
-      //       resolve(track)
-      //     })
-      // } else {
+      mopidy.library.getImages([track.track.uri]).then((response) => {
+        track.track.album.images = [response[Object.keys(response)[0]][0].uri]
         resolve(track.track)
-      // }
+      }).catch((error) => {
+        console.error(error)
+      })
     })
   }
 
@@ -191,7 +191,6 @@ class App extends Component {
   // <Playback play={this.play} stop={this.stop}/>
 
   render() {
-    console.log(this.state.trackList)
     return (
       <div className="container">
         <Search search={this.search} searching={this.state.searching} results={this.state.results} addTrack={this.add}/>
