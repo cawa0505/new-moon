@@ -1,8 +1,9 @@
 import React, { Component } from 'react'
 import Mopidy from 'mopidy'
 import axios from 'axios'
-import { FaSpotify, FaSoundcloud, FaYoutubePlay } from 'react-icons/lib/fa'
+import { FaSpotify, FaSoundcloud, FaYoutubePlay, FaCog } from 'react-icons/lib/fa'
 
+import Settings from './Settings'
 let throttle
 
 const mopidyConfig = {
@@ -14,6 +15,10 @@ const mopidyConfig = {
 }
 
 const mopidy = new Mopidy(mopidyConfig)
+
+const Cog = (props) => (
+  <div className="cog" onClick={props.onCog}><FaCog /></div>
+)
 
 const Search = (props) => {
   const clear = (track) => {
@@ -89,6 +94,7 @@ class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
+      showSettings: false,
       trackList: [],
       results: {
         tracks: [],
@@ -97,6 +103,7 @@ class App extends Component {
     this.getTracks = this.getTracks.bind(this)
     this.search = this.search.bind(this)
     this.add = this.add.bind(this)
+    this.handleCogClick = this.handleCogClick.bind(this)
   }
 
   componentDidMount() {
@@ -181,6 +188,10 @@ class App extends Component {
     })
   }
 
+  handleCogClick() {
+    this.setState({showSettings: !this.state.showSettings})
+  }
+
   play() {
     mopidy.playback.play()
   }
@@ -193,6 +204,8 @@ class App extends Component {
   render() {
     return (
       <div className="container">
+        <Cog onCog={this.handleCogClick}/>
+        { this.state.showSettings ? <Settings onCog={this.handleCogClick} /> : null}
         <Search search={this.search} searching={this.state.searching} results={this.state.results} addTrack={this.add}/>
         {this.state.trackList.length === 0 ? (
           <p>No tracks are queued</p>

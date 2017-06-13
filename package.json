@@ -2,6 +2,8 @@
   "name": "new-moon",
   "version": "0.1.0",
   "private": true,
+  "main": "src/main.js",
+  "homepage": "./",
   "dependencies": {
     "axios": "^0.16.1",
     "es6-promise": "^4.1.0",
@@ -12,12 +14,16 @@
     "react-icons": "^2.2.5"
   },
   "devDependencies": {
+    "electron": "^1.6.10",
     "react-scripts": "0.9.5"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "BROWSER=none react-scripts start | yarn electron-start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "electron": "electron .",
+    "electron-start": "ELECTRON_START_URL=http://localhost:3000 electron .",
+    "react-start": "react-scripts start"
   }
 }
