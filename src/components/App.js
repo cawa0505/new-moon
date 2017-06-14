@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import Mopidy from 'mopidy'
 import axios from 'axios'
-import { FaSpotify, FaSoundcloud, FaYoutubePlay, FaCog } from 'react-icons/lib/fa'
+import { FaSpotify, FaSoundcloud, FaYoutubePlay, FaCog , FaPlay, FaPause } from 'react-icons/lib/fa'
 
 import Settings from './Settings'
 let throttle
@@ -18,6 +18,20 @@ const mopidy = new Mopidy(mopidyConfig)
 
 const Cog = (props) => (
   <div className="cog" onClick={props.onCog}><FaCog /></div>
+)
+
+const PlayControls = (props) => (
+  <div className="play">
+    {props.status === 'playing' ? (
+      <div onClick={props.pause}>
+        <FaPause/>
+      </div>
+    ) : (
+      <div onClick={props.play}>
+        <FaPlay/>
+      </div>
+    )}
+  </div>
 )
 
 const Search = (props) => {
@@ -103,6 +117,8 @@ class App extends Component {
     this.getTracks = this.getTracks.bind(this)
     this.search = this.search.bind(this)
     this.add = this.add.bind(this)
+    this.play = this.play.bind(this)
+    this.pause = this.pause.bind(this)
     this.handleCogClick = this.handleCogClick.bind(this)
   }
 
@@ -110,6 +126,9 @@ class App extends Component {
     // mopidy.on(console.log.bind(console))
     mopidy.on('state:online', () => {
       this.getTracks()
+      mopidy.playback.getState().then((data) => {
+        this.setState({ playbackState: data })
+      })
     })
 
     mopidy.on('event:tracklistChanged', () => {
@@ -119,6 +138,10 @@ class App extends Component {
 
     mopidy.on('event:trackPlaybackStarted', () => {
       this.getTracks()
+    })
+
+    mopidy.on('event:playbackStateChanged', (data) => {
+      this.setState({ playbackState: data.new_state })
     })
   }
 
@@ -193,18 +216,25 @@ class App extends Component {
   }
 
   play() {
-    mopidy.playback.play()
+    if (this.state.playbackState === 'paused') {
+      mopidy.playback.resume()
+    }
+    else {
+      mopidy.playback.play()
+    }
   }
 
-  stop() {
-    mopidy.playback.stop()
+  pause() {
+    mopidy.playback.pause()
   }
-  // <Playback play={this.play} stop={this.stop}/>
 
   render() {
     return (
       <div className="container">
-        <Cog onCog={this.handleCogClick}/>
+        <div className="top">
+          <PlayControls status={this.state.playbackState} play={this.play} pause={this.pause}/>
+          <Cog onCog={this.handleCogClick}/>
+        </div>
         { this.state.showSettings ? <Settings onCog={this.handleCogClick} /> : null}
         <Search search={this.search} searching={this.state.searching} results={this.state.results} addTrack={this.add}/>
         {this.state.trackList.length === 0 ? (

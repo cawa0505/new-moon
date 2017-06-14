@@ -104,11 +104,19 @@ p, h3 {
   height: 100%;
 }
 
-.cog {
+.top {
   opacity: 0.5;
   position: absolute;
   top: 25px;
   right: 25px;
+  display: flex;
+  height: 25px;
+
+}
+
+.top > div {
+  height: 25px;
+  margin-left: 10px;
 }
 
 .settings {

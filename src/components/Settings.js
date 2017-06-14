@@ -13,7 +13,9 @@ class Settings extends Component {
     return (
       <div className="settings">
         <div className="container">
-          <div className="cog" onClick={this.props.onCog}><FaCog /></div>
+          <div className="top">
+            <div className="cog" onClick={this.props.onCog}><FaCog /></div>
+          </div>
           <h2>Settings</h2>
           <input placeholder="IP address" id="ip"/>
         </div>
