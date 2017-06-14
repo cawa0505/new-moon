@@ -35,8 +35,11 @@ const PlayControls = (props) => (
 )
 
 const Search = (props) => {
-  const clear = (track) => {
+  const addTrack = (track) => {
     props.addTrack(track)
+    clear()
+  }
+  const clear = () => {
     document.getElementById('search').value = ''
   }
   return (
@@ -47,7 +50,7 @@ const Search = (props) => {
           null
         ) : (
           <div className="results">
-            {props.results.tracks.map((track, index) => <SearchResult key={index} track={track} addTrack={() => clear(track)}/> )}
+            {props.results.tracks.map((track, index) => <SearchResult key={index} track={track} addTrack={() => addTrack(track)}/> )}
           </div>
         )}
       </div>
