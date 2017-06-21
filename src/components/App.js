@@ -5,6 +5,7 @@ import PlayControls from './PlayControls'
 import Settings from './Settings'
 import TracksList from './TracksList'
 import Search from './Search'
+import Empty from './Empty'
 import Cog from './Cog'
 
 let throttle
@@ -153,7 +154,7 @@ class App extends Component {
         { this.state.showSettings ? <Settings onCog={this.handleCogClick} /> : null}
         <Search search={this.search} searching={this.state.searching} results={this.state.results} addTrack={this.add}/>
         {this.state.trackList.length === 0 ? (
-          <p>No tracks are queued</p>
+          <Empty/>
         ) : (
           <TracksList trackList={this.state.trackList}/>
         )}
