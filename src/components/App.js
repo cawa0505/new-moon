@@ -109,7 +109,7 @@ class App extends Component {
     })
   }
 
-  removeNotification (count) {
+  removeNotification(count) {
     const { notifications } = this.state
     this.setState({
       notifications: notifications.filter(n => n.key !== count)
@@ -175,7 +175,6 @@ class App extends Component {
   }
 
   render() {
-    console.log(this.state.trackList)
     return (
       <div className="container">
         <NotificationStack
