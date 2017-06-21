@@ -1,9 +1,12 @@
 import React, { Component } from 'react'
 import Mopidy from 'mopidy'
-import axios from 'axios'
-import { FaSpotify, FaSoundcloud, FaYoutubePlay, FaCog , FaPlay, FaPause } from 'react-icons/lib/fa'
 
+import PlayControls from './PlayControls'
 import Settings from './Settings'
+import TracksList from './TracksList'
+import Search from './Search'
+import Cog from './Cog'
+
 let throttle
 
 const mopidyConfig = {
@@ -15,97 +18,6 @@ const mopidyConfig = {
 }
 
 const mopidy = new Mopidy(mopidyConfig)
-
-const Cog = (props) => (
-  <div className="cog" onClick={props.onCog}><FaCog /></div>
-)
-
-const PlayControls = (props) => (
-  <div className="play">
-    {props.status === 'playing' ? (
-      <div onClick={props.pause}>
-        <FaPause/>
-      </div>
-    ) : (
-      <div onClick={props.play}>
-        <FaPlay/>
-      </div>
-    )}
-  </div>
-)
-
-const Search = (props) => {
-  const addTrack = (track) => {
-    props.addTrack(track)
-    clear()
-  }
-  const clear = () => {
-    document.getElementById('search').value = ''
-  }
-  return (
-    <div className={props.searching ? "search active" : "search"}>
-      <div className="container">
-        <input placeholder="Search" onChange={props.search} id="search"/>
-        {!props.searching ? (
-          null
-        ) : (
-          <div className="results">
-            {props.results.tracks.map((track, index) => <SearchResult key={index} track={track} addTrack={() => addTrack(track)}/> )}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-const SearchResult = (props) => (
-  <div onClick={props.addTrack} className="result">
-    <h3>{props.track.name}</h3>
-    <p>{props.track.artists[0].name}</p>
-    <Provider uri={props.track.uri} />
-  </div>
-)
-
-const TracksList = (props) => (
-  <div>
-   {props.trackList.map((track, i) => <Track key={i} index={i} track={track} />)}
-  </div>
-)
-
-const Track = (props) => (
-  <div className={props.index === 0 ? "track nowplaying" : "track"}>
-    <div className="art">
-      {props.track.album.images[0] ? <img src={props.track.album.images[0]}/> : null}
-    </div>
-    <div>
-      <h3>{props.track.name}</h3>
-      <p>{props.track.artists[0].name}</p>
-      <Provider uri={props.track.uri} />
-    </div>
-  </div>
-)
-
-const Provider = (props) => {
-  if (props.uri.startsWith('spotify:')) {
-    return <FaSpotify />
-  }
-  else if (props.uri.startsWith('soundcloud:')) {
-    return <FaSoundcloud />
-  }
-  else if (props.uri.startsWith('youtube:')) {
-    return <FaYoutubePlay />
-  }
-  else {
-    return null
-  }
-}
-
-const Playback = (props) => (
-  <div>
-    <button onClick={props.play}>Play</button>
-    <button onClick={props.stop}>Stop</button>
-  </div>
-)
 
 class App extends Component {
   constructor(props) {
