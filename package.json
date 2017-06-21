@@ -8,7 +8,8 @@
     "mopidy": "^0.5.0",
     "react": "^15.5.4",
     "react-dom": "^15.5.4",
-    "react-icons": "^2.2.5"
+    "react-icons": "^2.2.5",
+    "react-notification": "^6.7.0"
   },
   "devDependencies": {
     "electron": "^1.6.10",
