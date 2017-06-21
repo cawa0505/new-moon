@@ -61,12 +61,12 @@ class App extends Component {
     })
   }
 
-  search(event) {
+  search(event = {target: {value: ''}}) {
     const term = event.target.value
     if (term !== '') {
       clearTimeout(throttle)
+      this.setState({ searching: true })
       throttle = setTimeout(() => {
-        this.setState({ searching: true })
         mopidy.library.search({'any': [term]}).then((data) => {
           let results = {
             'tracks': [],
