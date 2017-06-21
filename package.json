@@ -5,9 +5,6 @@
   "main": "src/main.js",
   "homepage": "./",
   "dependencies": {
-    "axios": "^0.16.1",
-    "es6-promise": "^4.1.0",
-    "isomorphic-fetch": "^2.2.1",
     "mopidy": "^0.5.0",
     "react": "^15.5.4",
     "react-dom": "^15.5.4",
