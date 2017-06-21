@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import Mopidy from 'mopidy'
+import shortid from 'shortid'
 import { NotificationStack } from 'react-notification'
 
 import PlayControls from './PlayControls'
@@ -27,7 +28,6 @@ class App extends Component {
     this.state = {
       showSettings: false,
       notifications: [],
-      count: 0,
       trackList: [],
       results: {
         tracks: [],
@@ -91,28 +91,27 @@ class App extends Component {
   }
 
   addNotification(message) {
-    const { notifications, count } = this.state
-    const id = notifications.size + 1
-    const newCount = count + 1
+    const { notifications } = this.state
+    const id = shortid.generate()
     return this.setState({
-      count: newCount,
       notifications: [
         {
           message: message,
-          key: newCount,
+          key: id,
           action: 'Dismiss',
           dismissAfter: 2000,
-          onClick: () => this.removeNotification(newCount)
+          actionStyle: { color: 'rgba(255, 255, 255, .2)' },
+          onClick: () => this.removeNotification(id)
         },
         ...notifications
       ]
     })
   }
 
-  removeNotification(count) {
+  removeNotification(id) {
     const { notifications } = this.state
     this.setState({
-      notifications: notifications.filter(n => n.key !== count)
+      notifications: notifications.filter(n => n.key !== id)
     })
   }
 
