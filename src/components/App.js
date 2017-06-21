@@ -1,5 +1,7 @@
 import React, { Component } from 'react'
 import Mopidy from 'mopidy'
+import shortid from 'shortid'
+import { NotificationStack } from 'react-notification'
 
 import PlayControls from './PlayControls'
 import Settings from './Settings'
@@ -25,6 +27,7 @@ class App extends Component {
     super(props)
     this.state = {
       showSettings: false,
+      notifications: [],
       trackList: [],
       results: {
         tracks: [],
@@ -87,9 +90,35 @@ class App extends Component {
     }
   }
 
+  addNotification(message) {
+    const { notifications } = this.state
+    const id = shortid.generate()
+    return this.setState({
+      notifications: [
+        {
+          message: message,
+          key: id,
+          action: 'Dismiss',
+          dismissAfter: 2000,
+          actionStyle: { color: 'rgba(255, 255, 255, .2)' },
+          onClick: () => this.removeNotification(id)
+        },
+        ...notifications
+      ]
+    })
+  }
+
+  removeNotification(id) {
+    const { notifications } = this.state
+    this.setState({
+      notifications: notifications.filter(n => n.key !== id)
+    })
+  }
+
   add(track) {
     mopidy.tracklist.add([track]).then((data) => {
       this.setState({searching: false})
+      this.addNotification('Track added')
     })
     .catch((error) => {
       console.error(error)
@@ -147,6 +176,12 @@ class App extends Component {
   render() {
     return (
       <div className="container">
+        <NotificationStack
+          notifications={this.state.notifications}
+          onDismiss={notification => this.setState({
+            notifications: this.state.notifications.delete(notification)
+          })}
+        />
         <div className="top">
           <PlayControls status={this.state.playbackState} play={this.play} pause={this.pause}/>
           <Cog onCog={this.handleCogClick}/>
