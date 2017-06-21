@@ -4,6 +4,7 @@ import SearchResult from './SearchResult'
 const Search = (props) => {
   const clear = () => {
     document.getElementById('search').value = ''
+    props.search()
   }
   const addTrack = (track) => {
     props.addTrack(track)
@@ -12,7 +13,7 @@ const Search = (props) => {
   return (
     <div className={props.searching ? "search active" : "search"}>
       <div className="container">
-        <input placeholder="Search" onChange={props.search} id="search"/>
+        <input type="search" placeholder="Search" onChange={props.search} id="search" autoComplete="off"/>
         {!props.searching ? (
           null
         ) : (
